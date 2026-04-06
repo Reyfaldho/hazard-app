@@ -24,6 +24,9 @@ class User extends Authenticatable
         'profile_photo',
         'is_active',
         'role',
+        'fcm_token',
+        'last_activity_at',
+        'last_notification_sent_at',
     ];
 
     protected $hidden = [
@@ -41,6 +44,8 @@ class User extends Authenticatable
     {
         return [
             'is_active' => 'boolean',
+            'last_activity_at' => 'datetime',
+            'last_notification_sent_at' => 'datetime',
         ];
     }
 
@@ -67,5 +72,10 @@ class User extends Authenticatable
     public function readStatuses()
     {
         return $this->hasMany(ReadStatus::class, 'user_id');
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'user_id');
     }
 }

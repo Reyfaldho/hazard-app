@@ -9,6 +9,7 @@ use App\Http\Controllers\API\NewsController;
 use App\Http\Controllers\API\AnnouncementController;
 use App\Http\Controllers\API\QrAssetController;
 use App\Http\Controllers\API\InboxController;
+use App\Http\Controllers\NotificationController;
 
 // ── Public Routes ─────────────────────────────────────────────────────────────
 
@@ -84,8 +85,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/qr-assets',       [QrAssetController::class, 'index']);
     Route::get('/qr-assets/scan',  [QrAssetController::class, 'scan']);
 
-    Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/me', [AuthController::class, 'me']);
-});
+    // ── Notifications ─────────────────────────────────────────────────────────
+    // POST   /api/notifications/register-fcm    → register FCM token dari mobile
+    // GET    /api/notifications                 → list notifications
+    // GET    /api/notifications/{id}            → get single notification
+    // POST   /api/notifications/{id}/read       → mark as read
+    // POST   /api/notifications/activity        → update last activity
+    // GET    /api/notifications/unread/count    → get unread count
+    Route::post('/notifications/register-fcm',      [NotificationController::class, 'registerFcmToken']);
+    Route::get('/notifications',                    [NotificationController::class, 'getNotifications']);
+    Route::get('/notifications/{notification}',     [NotificationController::class, 'getNotification']);
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/activity',          [NotificationController::class, 'updateActivity']);
+    Route::get('/notifications/unread/count',       [NotificationController::class, 'getUnreadCount']);
 
+    Route::get('/me', [AuthController::class, 'me']);
 });
