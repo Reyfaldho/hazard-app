@@ -9,12 +9,20 @@ use App\Http\Controllers\API\NewsController;
 use App\Http\Controllers\API\AnnouncementController;
 use App\Http\Controllers\API\QrAssetController;
 use App\Http\Controllers\API\InboxController;
+use App\Http\Controllers\API\ForgotPasswordController;
 use App\Http\Controllers\NotificationController;
 
 // ── Public Routes ─────────────────────────────────────────────────────────────
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
+
+// ── Email Verification ────────────────────────────────────────────────────────
+Route::get('/email/verify/{id}/{token}', [AuthController::class, 'verifyEmail']);  // dibuka via browser
+Route::post('/email/resend',             [AuthController::class, 'resendVerification']);
+
+// ── Forgot Password ───────────────────────────────────────────────────────────
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetOtp']);
 
 // News & Announcements can be read without login
 Route::get('/news',      [NewsController::class, 'index']);

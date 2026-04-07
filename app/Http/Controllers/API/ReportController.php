@@ -38,7 +38,7 @@ class ReportController extends Controller
 
         if ($request->sort === 'oldest') $query->oldest();
 
-        $perPage = (int) $request->get('per_page', 10);
+        $perPage = (int) $request->input('per_page', 10);
         $reports = $query->paginate($perPage);
 
         return response()->json([
@@ -50,7 +50,7 @@ class ReportController extends Controller
                 'last_page'    => $reports->lastPage(),
                 'has_more'     => $reports->hasMorePages(),
             ],
-            'data' => collect($reports->items())->map(fn($r) => $this->formatReport($r, $userId)),
+            'data' => collect($reports->items())->map(fn($r) => $this->formatReport($r, $userId))->values(),
         ]);
     }
 
@@ -156,7 +156,7 @@ class ReportController extends Controller
         ]);
     }
 
-    private function formatReport(Report $report, string $userId): array
+    private function formatReport(Report $report, ?string $userId): array
     {
         return [
             'id'                  => $report->id,

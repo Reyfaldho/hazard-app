@@ -17,6 +17,8 @@ class User extends Authenticatable
         'employee_id',
         'full_name',
         'email',
+        'email_verified_at',
+        'email_verification_token',
         'phone_number',
         'position',
         'department',
@@ -31,6 +33,7 @@ class User extends Authenticatable
 
     protected $hidden = [
         'password_hash',
+        'email_verification_token',
         'remember_token',
     ];
 
@@ -43,8 +46,9 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'is_active' => 'boolean',
-            'last_activity_at' => 'datetime',
+            'is_active'                 => 'boolean',
+            'email_verified_at'         => 'datetime',
+            'last_activity_at'          => 'datetime',
             'last_notification_sent_at' => 'datetime',
         ];
     }

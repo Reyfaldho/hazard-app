@@ -18,16 +18,16 @@ class InboxController extends Controller
     public function index(Request $request)
     {
         $userId  = Auth::id();
-        $type    = $request->get('type');      // filter by type
+        $type    = $request->input('type');      // filter by type
         $isRead  = $request->filled('is_read') ? (bool) $request->is_read : null;
-        $perPage = (int) $request->get('per_page', 15);
-        $page    = (int) $request->get('page', 1);
+        $perPage = (int) $request->input('per_page', 15);
+        $page    = (int) $request->input('page', 1);
 
         $items = collect();
 
         // ── Ambil Reports ─────────────────────────────────────────────────────
         if (! $type || $type === 'report') {
-            $reports = Report::with('user')->get()->map(function ($report) use ($userId) {
+            $reports = Report::with('user')->get()->map(function (Report $report) use ($userId) {
                 $isRead = $report->isReadBy($userId);
                 return [
                     'id'          => $report->id,
@@ -54,12 +54,13 @@ class InboxController extends Controller
 
         // ── Ambil Announcements ───────────────────────────────────────────────
         if (! $type || $type === 'announcement') {
-            $announcements = Announcement::active()->with('creator')->get()->map(function ($a) use ($userId) {
+            $announcements = Announcement::active()->with('creator')->get()->map(function (Announcement $a) use ($userId) {
                 $isRead = $a->isReadBy($userId);
                 return [
                     'id'        => $a->id,
                     'item_type' => 'announcement',
                     'title'     => $a->title,
+                    'body'      => $a->body,
                     'subtitle'  => $a->creator?->full_name ?? 'Admin',
                     'is_read'   => $isRead,
                     'created_by'=> $a->creator ? [

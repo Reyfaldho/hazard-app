@@ -28,8 +28,9 @@ class Report extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function isReadBy(string $userId): bool
+    public function isReadBy(?string $userId): bool
     {
+        if (!$userId) return false;
         return ReadStatus::where('user_id', $userId)
             ->where('item_id', $this->id)
             ->where('item_type', 'report')

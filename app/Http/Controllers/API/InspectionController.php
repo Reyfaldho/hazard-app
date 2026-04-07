@@ -28,7 +28,7 @@ class InspectionController extends Controller
             });
         }
 
-        $perPage     = (int) $request->get('per_page', 10);
+        $perPage     = (int) $request->input('per_page', 10);
         $inspections = $query->paginate($perPage);
 
         return response()->json([
@@ -40,7 +40,7 @@ class InspectionController extends Controller
                 'last_page'    => $inspections->lastPage(),
                 'has_more'     => $inspections->hasMorePages(),
             ],
-            'data' => collect($inspections->items())->map(fn($i) => $this->formatInspection($i)),
+            'data' => collect($inspections->items())->map(fn($i) => $this->formatInspection($i))->values(),
         ]);
     }
 
