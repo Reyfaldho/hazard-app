@@ -162,7 +162,7 @@ class ReportController extends Controller
                 ChecklistItem::create([
                     'report_id'  => $report->id,
                     'label'      => $item['label'],
-                    'is_checked' => $item['is_checked'] ?? false,
+                    'is_checked' => filter_var($item['is_checked'] ?? false, FILTER_VALIDATE_BOOLEAN),
                     'sort_order' => $index,
                 ]);
             }
