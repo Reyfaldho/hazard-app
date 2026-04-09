@@ -14,14 +14,14 @@ use Illuminate\Support\Str;
 class ForgotPasswordController extends Controller
 {
     // POST /api/forgot-password
-    // Body: { email }
+    // Body: { personal_email }
     public function sendResetOtp(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'personal_email' => 'required|email',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('personal_email', $request->personal_email)->first();
 
         // Selalu kembalikan success agar tidak bisa ditebak apakah email terdaftar
         if (! $user) {
@@ -35,15 +35,15 @@ class ForgotPasswordController extends Controller
 
         // Simpan token yang sudah di-hash ke tabel password_reset_tokens
         DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $request->email],
+            ['email' => $user->personal_email],
             [
                 'token'      => Hash::make($token),
                 'created_at' => now(),
             ]
         );
 
-        $resetUrl = url("/reset-password/{$token}?email=" . urlencode($user->email));
-        Mail::to($user->email)->send(new ResetPasswordMail($resetUrl, $user->full_name));
+        $resetUrl = url("/reset-password/{$token}?email=") . urlencode($user->personal_email);
+        Mail::to($user->personal_email)->send(new ResetPasswordMail($resetUrl, $user->full_name));
 
         return response()->json([
             'status'  => 'success',
@@ -56,7 +56,7 @@ class ForgotPasswordController extends Controller
     {
         return view('auth.reset-password-form', [
             'token' => $token,
-            'email' => $request->query('email')
+            'email' => $request->query('email'),
         ]);
     }
 
@@ -64,9 +64,9 @@ class ForgotPasswordController extends Controller
     public function handleWebReset(Request $request)
     {
         $request->validate([
-            'email'                 => 'required|email',
-            'token'                 => 'required|string',
-            'password'              => 'required|min:6|confirmed',
+            'email'    => 'required|email',
+            'token'    => 'required|string',
+            'password' => 'required|min:6|confirmed',
         ]);
 
         $record = DB::table('password_reset_tokens')
@@ -84,7 +84,7 @@ class ForgotPasswordController extends Controller
             return back()->withErrors(['email' => 'Tautan reset password sudah kadaluarsa. Silakan minta tautan baru.']);
         }
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('personal_email', $request->email)->first();
 
         if (! $user) {
             return back()->withErrors(['email' => 'User tidak ditemukan.']);
@@ -96,7 +96,7 @@ class ForgotPasswordController extends Controller
         // Hapus token
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
-        // Hapus semua token akses API 
+        // Hapus semua token akses API
         $user->tokens()->delete();
 
         return view('auth.reset-password-success');

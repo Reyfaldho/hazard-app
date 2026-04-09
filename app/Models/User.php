@@ -13,10 +13,10 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasApiTokens, HasUuids;
 
     protected $fillable = [
-        'nik',
-        'employee_id',
+        'staff_id',
         'full_name',
-        'email',
+        'personal_email',
+        'work_email',
         'email_verified_at',
         'email_verification_token',
         'phone_number',
@@ -58,11 +58,6 @@ class User extends Authenticatable
         return $this->hasMany(Report::class, 'user_id');
     }
 
-    public function inspections()
-    {
-        return $this->hasMany(Inspection::class, 'user_id');
-    }
-
     public function announcements()
     {
         return $this->hasMany(Announcement::class, 'created_by');
@@ -81,5 +76,20 @@ class User extends Authenticatable
     public function notifications()
     {
         return $this->hasMany(Notification::class, 'user_id');
+    }
+
+    public function licenses()
+    {
+        return $this->hasMany(UserLicense::class, 'user_id');
+    }
+
+    public function certifications()
+    {
+        return $this->hasMany(UserCertification::class, 'user_id');
+    }
+
+    public function medicals()
+    {
+        return $this->hasMany(UserMedical::class, 'user_id');
     }
 }

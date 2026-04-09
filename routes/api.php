@@ -4,13 +4,12 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\ReportController;
-use App\Http\Controllers\API\InspectionController;
 use App\Http\Controllers\API\NewsController;
 use App\Http\Controllers\API\AnnouncementController;
 use App\Http\Controllers\API\QrAssetController;
 use App\Http\Controllers\API\InboxController;
 use App\Http\Controllers\API\ForgotPasswordController;
-use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\API\NotificationController;
 
 // ── Public Routes ─────────────────────────────────────────────────────────────
 
@@ -47,23 +46,24 @@ Route::middleware('auth:sanctum')->group(function () {
     // DELETE /api/reports/{id}         → delete own report (admin can delete all)
     // PATCH  /api/reports/{id}/status  → update status (admin/supervisor only)
     Route::get('/reports',               [ReportController::class, 'index']);
+    Route::get('/reports/statistics',    [ReportController::class, 'statistics']);
     Route::post('/reports',              [ReportController::class, 'store']);
     Route::get('/reports/{id}',          [ReportController::class, 'show']);
+    Route::get('/reports/{id}/logs',     [ReportController::class, 'logs']);
     Route::delete('/reports/{id}',       [ReportController::class, 'destroy']);
     Route::patch('/reports/{id}/status', [ReportController::class, 'updateStatus'])
         ->middleware('role:admin,supervisor');
 
-    // ── Inspections ───────────────────────────────────────────────────────────
-    // GET    /api/inspections           → list (filter, search, paginate)
-    // POST   /api/inspections           → create + checklist items
-    // GET    /api/inspections/{id}      → detail with checklist
-    // DELETE /api/inspections/{id}      → delete own inspection
-    Route::get('/inspections',        [InspectionController::class, 'index']);
-    Route::post('/inspections',       [InspectionController::class, 'store']);
-    Route::get('/inspections/{id}',   [InspectionController::class, 'show']);
-    Route::delete('/inspections/{id}',[InspectionController::class, 'destroy']);
+    // Inspections merged into /api/reports    // ==========================================
+    // News & Articles
+    // ==========================================
+    Route::get('/news',                  [NewsController::class, 'index']);
+    Route::get('/news/{id}',             [NewsController::class, 'show']);
+    Route::post('/news',                 [NewsController::class, 'store']);
+    Route::delete('/news/{id}',          [NewsController::class, 'destroy']);
 
-    // ── Announcements (Inbox) ─────────────────────────────────────────────────
+    // ==========================================
+    // Inbox / Announcements (Inbox) ─────────────────────────────────────────────────
     // GET    /api/announcements          → list + unread_count
     // GET    /api/announcements/{id}     → detail + auto mark as read
     // POST   /api/announcements          → create (admin/supervisor only)
@@ -100,12 +100,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // POST   /api/notifications/{id}/read       → mark as read
     // POST   /api/notifications/activity        → update last activity
     // GET    /api/notifications/unread/count    → get unread count
-    Route::post('/notifications/register-fcm',      [NotificationController::class, 'registerFcmToken']);
-    Route::get('/notifications',                    [NotificationController::class, 'getNotifications']);
-    Route::get('/notifications/{notification}',     [NotificationController::class, 'getNotification']);
-    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
-    Route::post('/notifications/activity',          [NotificationController::class, 'updateActivity']);
-    Route::get('/notifications/unread/count',       [NotificationController::class, 'getUnreadCount']);
+    Route::post('/notifications/register-fcm',       [NotificationController::class, 'registerFcmToken']);
+    Route::get('/notifications',                     [NotificationController::class, 'getNotifications']);
+    Route::get('/notifications/unread/count',        [NotificationController::class, 'getUnreadCount']);
+    Route::post('/notifications/read-all',           [NotificationController::class, 'markAllAsRead']);
+    Route::get('/notifications/{notification}',      [NotificationController::class, 'getNotification']);
+    Route::post('/notifications/{notification}/read',[NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/activity',           [NotificationController::class, 'registerFcmToken']); // legacy alias
 
     Route::get('/me', [AuthController::class, 'me']);
 });

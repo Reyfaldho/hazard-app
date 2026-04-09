@@ -16,27 +16,30 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'nik'          => 'required|string|max:16|unique:users',
-            'employee_id'  => 'nullable|string|max:20|unique:users',
-            'full_name'    => 'required|string|max:100',
-            'email'        => 'required|email|unique:users',
-            'password'     => 'required|min:6',
-            'phone_number' => 'nullable|string|max:20',
-            'position'     => 'nullable|string|max:100',
-            'department'   => 'nullable|string|max:100',
+            'staff_id'       => 'required|string|max:50|unique:users',
+            'full_name'      => 'required|string|max:100',
+            'personal_email' => 'required|email:rfc,dns|max:150|unique:users',
+            'work_email'     => 'nullable|email:rfc,dns|max:150|unique:users',
+            'password'       => 'required|string|min:6',
+            'phone_number'   => 'nullable|string|max:20',
+            'position'       => 'nullable|string|max:100',
+            'department'     => 'nullable|string|max:100',
+        ], [
+            'staff_id.unique'            => 'Staff ID sudah terdaftar. Gunakan Staff ID lain.',
+            'personal_email.email'       => 'Format email tidak valid atau domain email tidak ditemukan. Pastikan email Anda benar.',
+            'personal_email.unique'      => 'Email ini sudah terdaftar. Gunakan email lain atau login.',
+            'work_email.email'           => 'Format email kerja tidak valid atau domain tidak ditemukan.',
+            'work_email.unique'          => 'Email kerja ini sudah terdaftar.',
+            'password.min'               => 'Password minimal 6 karakter.',
         ]);
 
         $verificationToken = Str::random(64);
 
-        // Auto-generate employee_id jika tidak dikirim
-        $employeeId = $request->employee_id
-            ?? 'USR-' . strtoupper(Str::random(4)) . '-' . now()->format('ymd');
-
         $user = User::create([
-            'nik'                       => $request->nik,
-            'employee_id'               => $employeeId,
+            'staff_id'                  => $request->staff_id,
             'full_name'                 => $request->full_name,
-            'email'                     => $request->email,
+            'personal_email'            => $request->personal_email,
+            'work_email'                => $request->work_email,
             'password_hash'             => Hash::make($request->password),
             'phone_number'              => $request->phone_number,
             'position'                  => $request->position,
@@ -45,14 +48,14 @@ class AuthController extends Controller
             'email_verification_token'  => $verificationToken,
         ]);
 
-        // Kirim link verifikasi ke email
+        // Kirim link verifikasi ke personal email
         $verificationUrl = url("/api/email/verify/{$user->id}/{$verificationToken}");
-        Mail::to($user->email)->send(new VerifyEmailMail($verificationUrl, $user->full_name));
+        Mail::to($user->personal_email)->send(new VerifyEmailMail($verificationUrl, $user->full_name));
 
         return response()->json([
             'status'  => 'success',
-            'message' => 'Registrasi berhasil. Link verifikasi telah dikirim ke email Anda. Silakan cek inbox dan verifikasi sebelum login.',
-            'data'    => ['email' => $user->email],
+            'message' => 'Registrasi berhasil. Link verifikasi telah dikirim ke email pribadi Anda. Silakan cek inbox dan verifikasi sebelum login.',
+            'data'    => ['personal_email' => $user->personal_email],
         ], 201);
     }
 
@@ -88,14 +91,14 @@ class AuthController extends Controller
     }
 
     // POST /api/email/resend
-    // Body: { email }
+    // Body: { personal_email }
     public function resendVerification(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'personal_email' => 'required|email',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('personal_email', $request->personal_email)->first();
 
         if (! $user) {
             return response()->json([
@@ -115,7 +118,7 @@ class AuthController extends Controller
         $user->update(['email_verification_token' => $verificationToken]);
 
         $verificationUrl = url("/api/email/verify/{$user->id}/{$verificationToken}");
-        Mail::to($user->email)->send(new VerifyEmailMail($verificationUrl, $user->full_name));
+        Mail::to($user->personal_email)->send(new VerifyEmailMail($verificationUrl, $user->full_name));
 
         return response()->json([
             'status'  => 'success',
@@ -124,7 +127,7 @@ class AuthController extends Controller
     }
 
     // POST /api/login
-    // Field 'login' bisa diisi NIK, employee_id, atau email
+    // Field 'login' bisa diisi staff_id, personal_email, atau work_email
     public function login(Request $request)
     {
         $request->validate([
@@ -132,15 +135,15 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->login)
-            ->orWhere('nik', $request->login)
-            ->orWhere('employee_id', $request->login)
+        $user = User::where('personal_email', $request->login)
+            ->orWhere('work_email', $request->login)
+            ->orWhere('staff_id', $request->login)
             ->first();
 
         if (! $user || ! Hash::check($request->password, $user->password_hash)) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Kredensial tidak valid. Periksa kembali NIK/Employee ID/Email dan password Anda.',
+                'message' => 'Kredensial tidak valid. Periksa kembali Staff ID / Email dan password Anda.',
             ], 401);
         }
 
@@ -156,8 +159,8 @@ class AuthController extends Controller
             return response()->json([
                 'status'  => 'error',
                 'code'    => 'email_not_verified',
-                'message' => 'Email Anda belum diverifikasi. Silakan cek inbox email Anda dan klik link verifikasi.',
-                'data'    => ['email' => $user->email],
+                'message' => 'Email Anda belum diverifikasi. Silakan cek inbox email pribadi Anda dan klik link verifikasi.',
+                'data'    => ['personal_email' => $user->personal_email],
             ], 403);
         }
 
@@ -195,10 +198,10 @@ class AuthController extends Controller
     {
         return [
             'id'             => $user->id,
-            'nik'            => $user->nik,
-            'employee_id'    => $user->employee_id,
+            'staff_id'       => $user->staff_id,
             'full_name'      => $user->full_name,
-            'email'          => $user->email,
+            'personal_email' => $user->personal_email,
+            'work_email'     => $user->work_email,
             'email_verified' => ! is_null($user->email_verified_at),
             'phone_number'   => $user->phone_number,
             'position'       => $user->position,

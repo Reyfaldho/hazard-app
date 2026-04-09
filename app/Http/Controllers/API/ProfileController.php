@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -13,9 +14,14 @@ class ProfileController extends Controller
     // GET /api/profile
     public function getProfile()
     {
+        /** @var User $user */
+        $user = User::with(['licenses', 'certifications', 'medicals' => function ($q) {
+            $q->orderBy('checkup_date', 'desc');
+        }])->findOrFail(Auth::id());
+
         return response()->json([
             'status' => 'success',
-            'data'   => $this->formatUser(Auth::user()),
+            'data'   => $this->formatUser($user),
         ]);
     }
 
@@ -27,6 +33,7 @@ class ProfileController extends Controller
 
         $request->validate([
             'full_name'     => 'nullable|string|max:100',
+            'work_email'    => 'nullable|email|max:150|unique:users,work_email,' . $user->id,
             'phone_number'  => 'nullable|string|max:20',
             'position'      => 'nullable|string|max:100',
             'department'    => 'nullable|string|max:100',
@@ -34,6 +41,7 @@ class ProfileController extends Controller
         ]);
 
         if ($request->filled('full_name'))    $user->full_name    = $request->full_name;
+        if ($request->filled('work_email'))   $user->work_email   = $request->work_email;
         if ($request->filled('phone_number')) $user->phone_number = $request->phone_number;
         if ($request->filled('position'))     $user->position     = $request->position;
         if ($request->filled('department'))   $user->department   = $request->department;
@@ -92,19 +100,44 @@ class ProfileController extends Controller
     private function formatUser($user): array
     {
         return [
-            'id'            => $user->id,
-            'nik'           => $user->nik,
-            'employee_id'   => $user->employee_id,
-            'full_name'     => $user->full_name,
-            'email'         => $user->email,
-            'phone_number'  => $user->phone_number,
-            'position'      => $user->position,
-            'department'    => $user->department,
-            'profile_photo' => $user->profile_photo
+            'id'             => $user->id,
+            'staff_id'       => $user->staff_id,
+            'full_name'      => $user->full_name,
+            'personal_email' => $user->personal_email,
+            'work_email'     => $user->work_email,
+            'phone_number'   => $user->phone_number,
+            'position'       => $user->position,
+            'department'     => $user->department,
+            'profile_photo'  => $user->profile_photo
                 ? asset('storage/' . $user->profile_photo)
                 : null,
-            'role'          => $user->role,
-            'is_active'     => $user->is_active,
+            'role'           => $user->role,
+            'is_active'      => $user->is_active,
+            'licenses'       => $user->relationLoaded('licenses') ? $user->licenses->map(fn($l) => [
+                'id'             => $l->id,
+                'name'           => $l->name,
+                'license_number' => $l->license_number,
+                'expired_at'     => $l->expired_at?->format('Y-m-d'),
+                'status'         => $l->status,
+            ]) : [],
+            'certifications' => $user->relationLoaded('certifications') ? $user->certifications->map(fn($c) => [
+                'id'     => $c->id,
+                'name'   => $c->name,
+                'issuer' => $c->issuer,
+                'year'   => $c->year,
+                'status' => $c->status,
+            ]) : [],
+            'medicals'       => $user->relationLoaded('medicals') ? $user->medicals->map(fn($m) => [
+                'id'                => $m->id,
+                'checkup_date'      => $m->checkup_date?->format('Y-m-d'),
+                'blood_type'        => $m->blood_type,
+                'height'            => $m->height,
+                'weight'            => $m->weight,
+                'blood_pressure'    => $m->blood_pressure,
+                'allergies'         => $m->allergies,
+                'result'            => $m->result,
+                'next_checkup_date' => $m->next_checkup_date?->format('Y-m-d'),
+            ]) : [],
         ];
     }
 }
