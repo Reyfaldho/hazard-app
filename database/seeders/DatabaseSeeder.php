@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
         // ══════════════════════════════════════════════════════════════════
 
         $superadmin = User::create([
-            'staff_id'       => 'BBE-SA-01',
+            'employee_id'       => 'BBE-SA-01',
             'full_name'      => 'Ahmad Fauzan',
             'personal_email' => 'superadmin@bbe.com',
             'work_email'     => 'a.fauzan@bbe.co.id',
@@ -44,7 +44,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $admin = User::create([
-            'staff_id'       => 'BBE-AD-01',
+            'employee_id'       => 'BBE-AD-01',
             'full_name'      => 'Budi Santoso',
             'personal_email' => 'budi@bbe.com',
             'work_email'     => 'b.santoso@bbe.co.id',
@@ -59,7 +59,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $admin2 = User::create([
-            'staff_id'       => 'BBE-AD-02',
+            'employee_id'       => 'BBE-AD-02',
             'full_name'      => 'Sari Dewi Rahayu',
             'personal_email' => 'sari@bbe.com',
             'work_email'     => 's.dewi@bbe.co.id',
@@ -75,7 +75,7 @@ class DatabaseSeeder extends Seeder
 
         // Demo user — staff_id = "1", password = "123"
         $demo = User::create([
-            'staff_id'       => '1',
+            'employee_id'       => '1',
             'full_name'      => 'Demo User',
             'personal_email' => 'demo@bbe.com',
             'work_email'     => null,
@@ -90,7 +90,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $faiz = User::create([
-            'staff_id'       => 'BBE-OP-01',
+            'employee_id'       => 'BBE-OP-01',
             'full_name'      => 'Muhammad Faiz',
             'personal_email' => 'faiz@bbe.com',
             'work_email'     => 'm.faiz@bbe.co.id',
@@ -105,7 +105,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $lintang = User::create([
-            'staff_id'       => 'BBE-OP-02',
+            'employee_id'       => 'BBE-OP-02',
             'full_name'      => 'Noor Lintang Bhaskara',
             'personal_email' => 'lintang@bbe.com',
             'work_email'     => 'n.lintang@bbe.co.id',
@@ -120,7 +120,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $rudi = User::create([
-            'staff_id'       => 'BBE-MN-01',
+            'employee_id'       => 'BBE-MN-01',
             'full_name'      => 'Rudi Hartono',
             'personal_email' => 'rudi@bbe.com',
             'work_email'     => 'r.hartono@bbe.co.id',
@@ -135,7 +135,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $putri = User::create([
-            'staff_id'       => 'BBE-EV-01',
+            'employee_id'       => 'BBE-EV-01',
             'full_name'      => 'Putri Handayani',
             'personal_email' => 'putri@bbe.com',
             'work_email'     => 'p.handayani@bbe.co.id',
@@ -346,6 +346,7 @@ class DatabaseSeeder extends Seeder
             'description'         => 'Rambu keselamatan di area hauling road KM 3 sudah kotor dan warna pudar sehingga sulit dibaca oleh pengemudi dump truck, berpotensi menyebabkan kecelakaan lalu lintas tambang.',
             'severity'            => 'medium',
             'status'              => 'in_progress',
+            'sub_status'          => 'executing',
             'location'            => 'Hauling Road KM 3',
             'name_pja'            => 'Budi Santoso',
             'reported_department' => 'Operational',
@@ -358,6 +359,7 @@ class DatabaseSeeder extends Seeder
             'description'         => 'Material workshop berupa pipa besi dan suku cadang berserakan di depan pintu keluar workshop, menghalangi jalur evakuasi darurat yang seharusnya selalu bersih.',
             'severity'            => 'low',
             'status'              => 'open',
+            'sub_status'          => 'validating',
             'location'            => 'Depan Workshop Utama',
             'name_pja'            => 'Hendra Wijaya',
             'reported_department' => 'Operational',
@@ -370,6 +372,7 @@ class DatabaseSeeder extends Seeder
             'description'         => 'Kabel listrik bertegangan 220V di sudut ruang server lantai 3 terkelupas isolasinya, berpotensi menyebabkan sengatan listrik atau kebakaran pada perangkat server.',
             'severity'            => 'high',
             'status'              => 'open',
+            'sub_status'          => 'approved',
             'location'            => 'Ruang Server - Lantai 3',
             'name_pja'            => 'Rudi Hartono',
             'reported_department' => 'IT',
@@ -382,6 +385,7 @@ class DatabaseSeeder extends Seeder
             'description'         => 'Terdapat tumpahan oli hydraulic dari excavator PC200 Unit 03 di area parkir Sektor B. Genangan oli licin dapat menyebabkan karyawan terpeleset.',
             'severity'            => 'medium',
             'status'              => 'closed',
+            'sub_status'          => 'resolved',
             'location'            => 'Parkir Alat Berat - Sektor B',
             'name_pja'            => 'Budi Santoso',
             'reported_department' => 'Operational',
@@ -394,6 +398,7 @@ class DatabaseSeeder extends Seeder
             'description'         => 'Ditemukan wadah limbah B3 berupa bekas cat dan thinner yang dibuang sembarangan di area belakang gudang, tidak sesuai prosedur pengelolaan limbah B3 KLHK.',
             'severity'            => 'high',
             'status'              => 'in_progress',
+            'sub_status'          => 'preparing',
             'location'            => 'Belakang Gudang Material',
             'name_pja'            => 'Sari Dewi Rahayu',
             'reported_department' => 'Environmental',
@@ -405,6 +410,7 @@ class DatabaseSeeder extends Seeder
             'title'       => 'Inspeksi Rutin Alat Berat - Excavator Sektor B',
             'description' => 'Inspeksi berkala bulanan excavator di area pertambangan Sektor B untuk memastikan kondisi operasional dan keselamatan.',
             'status'      => 'closed',
+            'sub_status'  => 'resolved',
             'location'    => 'Area Parkir Excavator - Sektor B',
             'area'        => 'Mining Area Sektor B',
             'result'      => 'needs_follow_up',
@@ -417,6 +423,7 @@ class DatabaseSeeder extends Seeder
             'title'       => 'Inspeksi APAR Seluruh Gedung Kantor',
             'description' => 'Pemeriksaan kondisi dan kelengkapan APAR di seluruh gedung kantor pusat BBE untuk memastikan kesiapan menghadapi darurat kebakaran.',
             'status'      => 'open',
+            'sub_status'  => 'assigned',
             'location'    => 'Gedung Kantor Pusat BBE',
             'area'        => 'Gedung Kantor',
             'result'      => 'compliant',
@@ -429,6 +436,7 @@ class DatabaseSeeder extends Seeder
             'title'       => 'Inspeksi Pemakaian APD Karyawan Area Tambang',
             'description' => 'Inspeksi pemakaian Alat Pelindung Diri karyawan di area pertambangan aktif untuk memastikan kepatuhan terhadap standar K3.',
             'status'      => 'in_progress',
+            'sub_status'  => 'reviewing',
             'location'    => 'Area Tambang Aktif Sektor A',
             'area'        => 'Mining Area Sektor A',
             'result'      => 'non_compliant',
@@ -472,27 +480,27 @@ class DatabaseSeeder extends Seeder
         // REPORT LOGS
         // ══════════════════════════════════════════════════════════════════
 
-        ReportLog::create(['report_id' => $r1->id, 'user_id' => $faiz->id,   'status' => 'open',        'message' => 'Laporan hazard baru dibuat.',                                                    'created_at' => now()->subDays(5)]);
-        ReportLog::create(['report_id' => $r1->id, 'user_id' => $admin->id,  'status' => 'in_progress', 'message' => 'Laporan divalidasi dan tim cleaning dijadwalkan.',                             'created_at' => now()->subDays(4)]);
+        ReportLog::create(['report_id' => $r1->id, 'user_id' => $faiz->id,   'status' => 'open',        'sub_status' => 'validating', 'message' => 'Laporan hazard baru dibuat.',                                                    'created_at' => now()->subDays(5)]);
+        ReportLog::create(['report_id' => $r1->id, 'user_id' => $admin->id,  'status' => 'in_progress', 'sub_status' => 'executing',  'message' => 'Laporan divalidasi dan tim cleaning dijadwalkan.',                             'created_at' => now()->subDays(4)]);
 
-        ReportLog::create(['report_id' => $r2->id, 'user_id' => $lintang->id,'status' => 'open',        'message' => 'Laporan hazard baru dibuat.',                                                    'created_at' => now()->subDays(3)]);
+        ReportLog::create(['report_id' => $r2->id, 'user_id' => $lintang->id,'status' => 'open',        'sub_status' => 'validating', 'message' => 'Laporan hazard baru dibuat.',                                                    'created_at' => now()->subDays(3)]);
 
-        ReportLog::create(['report_id' => $r3->id, 'user_id' => $rudi->id,   'status' => 'open',        'message' => 'Laporan hazard baru dibuat.',                                                    'created_at' => now()->subDays(2)]);
+        ReportLog::create(['report_id' => $r3->id, 'user_id' => $rudi->id,   'status' => 'open',        'sub_status' => 'approved',   'message' => 'Laporan hazard baru dibuat.',                                                    'created_at' => now()->subDays(2)]);
 
-        ReportLog::create(['report_id' => $r4->id, 'user_id' => $demo->id,   'status' => 'open',        'message' => 'Laporan hazard baru dibuat.',                                                    'created_at' => now()->subDays(10)]);
-        ReportLog::create(['report_id' => $r4->id, 'user_id' => $admin->id,  'status' => 'in_progress', 'message' => 'Tim maintenance ditugaskan untuk pembersihan area.',                            'created_at' => now()->subDays(8)]);
-        ReportLog::create(['report_id' => $r4->id, 'user_id' => $admin->id,  'status' => 'closed',      'message' => 'Area telah dibersihkan dan oil absorber dipasang. Laporan ditutup.',            'created_at' => now()->subDays(7)]);
+        ReportLog::create(['report_id' => $r4->id, 'user_id' => $demo->id,   'status' => 'open',        'sub_status' => 'validating', 'message' => 'Laporan hazard baru dibuat.',                                                    'created_at' => now()->subDays(10)]);
+        ReportLog::create(['report_id' => $r4->id, 'user_id' => $admin->id,  'status' => 'in_progress', 'sub_status' => 'executing',  'message' => 'Tim maintenance ditugaskan untuk pembersihan area.',                            'created_at' => now()->subDays(8)]);
+        ReportLog::create(['report_id' => $r4->id, 'user_id' => $admin->id,  'status' => 'closed',      'sub_status' => 'resolved',   'message' => 'Area telah dibersihkan dan oil absorber dipasang. Laporan ditutup.',            'created_at' => now()->subDays(7)]);
 
-        ReportLog::create(['report_id' => $r5->id, 'user_id' => $putri->id,  'status' => 'open',        'message' => 'Laporan hazard baru dibuat.',                                                    'created_at' => now()->subDays(6)]);
-        ReportLog::create(['report_id' => $r5->id, 'user_id' => $admin2->id, 'status' => 'in_progress', 'message' => 'Limbah dipindahkan sementara, koordinasi dengan tim environmental dimulai.',    'created_at' => now()->subDays(5)]);
+        ReportLog::create(['report_id' => $r5->id, 'user_id' => $putri->id,  'status' => 'open',        'sub_status' => 'validating', 'message' => 'Laporan hazard baru dibuat.',                                                    'created_at' => now()->subDays(6)]);
+        ReportLog::create(['report_id' => $r5->id, 'user_id' => $admin2->id, 'status' => 'in_progress', 'sub_status' => 'preparing',  'message' => 'Limbah dipindahkan sementara, koordinasi dengan tim environmental dimulai.',    'created_at' => now()->subDays(5)]);
 
-        ReportLog::create(['report_id' => $r6->id, 'user_id' => $admin->id,  'status' => 'open',        'message' => 'Laporan inspeksi baru dibuat.',                                                  'created_at' => now()->subDays(14)]);
-        ReportLog::create(['report_id' => $r6->id, 'user_id' => $admin->id,  'status' => 'in_progress', 'message' => 'Inspeksi sedang berjalan di lapangan.',                                         'created_at' => now()->subDays(14)]);
-        ReportLog::create(['report_id' => $r6->id, 'user_id' => $admin->id,  'status' => 'closed',      'message' => 'Inspeksi selesai. Excavator Unit 03 dijadwalkan service.',                      'created_at' => now()->subDays(13)]);
+        ReportLog::create(['report_id' => $r6->id, 'user_id' => $admin->id,  'status' => 'open',        'sub_status' => 'validating', 'message' => 'Laporan inspeksi baru dibuat.',                                                  'created_at' => now()->subDays(14)]);
+        ReportLog::create(['report_id' => $r6->id, 'user_id' => $admin->id,  'status' => 'in_progress', 'sub_status' => 'executing',  'message' => 'Inspeksi sedang berjalan di lapangan.',                                         'created_at' => now()->subDays(14)]);
+        ReportLog::create(['report_id' => $r6->id, 'user_id' => $admin->id,  'status' => 'closed',      'sub_status' => 'resolved',   'message' => 'Inspeksi selesai. Excavator Unit 03 dijadwalkan service.',                      'created_at' => now()->subDays(13)]);
 
-        ReportLog::create(['report_id' => $r7->id, 'user_id' => $admin2->id, 'status' => 'open',        'message' => 'Laporan inspeksi baru dibuat.',                                                  'created_at' => now()->subDay()]);
-        ReportLog::create(['report_id' => $r8->id, 'user_id' => $admin->id,  'status' => 'open',        'message' => 'Laporan inspeksi baru dibuat.',                                                  'created_at' => now()->subDays(2)]);
-        ReportLog::create(['report_id' => $r8->id, 'user_id' => $admin->id,  'status' => 'in_progress', 'message' => 'Teguran diberikan, pemantauan lanjutan dijadwalkan.',                           'created_at' => now()->subDay()]);
+        ReportLog::create(['report_id' => $r7->id, 'user_id' => $admin2->id, 'status' => 'open',        'sub_status' => 'assigned',   'message' => 'Laporan inspeksi baru dibuat.',                                                  'created_at' => now()->subDay()]);
+        ReportLog::create(['report_id' => $r8->id, 'user_id' => $admin->id,  'status' => 'open',        'sub_status' => 'validating', 'message' => 'Laporan inspeksi baru dibuat.',                                                  'created_at' => now()->subDays(2)]);
+        ReportLog::create(['report_id' => $r8->id, 'user_id' => $admin->id,  'status' => 'in_progress', 'sub_status' => 'reviewing',  'message' => 'Teguran diberikan, pemantauan lanjutan dijadwalkan.',                           'created_at' => now()->subDay()]);
 
         // ══════════════════════════════════════════════════════════════════
         // ANNOUNCEMENTS  (dibuat oleh admin/superadmin)

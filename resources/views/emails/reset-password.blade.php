@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password - Hazard App</title>
+    <title>Reset Password - SapaHSE</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -122,7 +122,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">Hazard<span>App</span></div>
+            <div class="logo">Sapa<span>HSE</span></div>
             <div class="subtitle">Sistem Pelaporan & Keselamatan Kerja</div>
         </div>
 

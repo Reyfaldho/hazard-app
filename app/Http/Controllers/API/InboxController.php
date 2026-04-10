@@ -13,27 +13,34 @@ class InboxController extends Controller
 {
     public function index(Request $request)
     {
-        $userId  = Auth::id();
-        $type    = $request->input('type', 'report'); // default ke report
+        $user    = Auth::user();
+        $userId  = $user->id;
+        $type    = $request->input('type', 'personal'); // 'personal' | 'announcement'
         $isRead  = $request->filled('is_read') ? filter_var($request->is_read, FILTER_VALIDATE_BOOLEAN) : null;
         $search  = $request->input('search');
         $perPage = (int) $request->input('per_page', 15);
 
-        // ── 1. Hitung Unread Badges (selalu dihitung agar UI bisa render badge) ──
+        // ── 1. Hitung unread badges ────────────────────────────────────────────
         $readReportIds = ReadStatus::where('user_id', $userId)
             ->where('item_type', 'report')
             ->pluck('item_id');
-        $unreadReportsCount = Report::whereNotIn('id', $readReportIds)->count();
+
+        // Personal: hanya laporan yang name_pja == full_name user login
+        $personalUnread = Report::where('name_pja', $user->full_name)
+            ->whereNotIn('id', $readReportIds)
+            ->count();
 
         $readAnnouncementIds = ReadStatus::where('user_id', $userId)
             ->where('item_type', 'announcement')
             ->pluck('item_id');
-        $unreadAnnouncementsCount = Announcement::active()->whereNotIn('id', $readAnnouncementIds)->count();
+        $unreadAnnouncementsCount = Announcement::active()
+            ->whereNotIn('id', $readAnnouncementIds)
+            ->count();
 
-        // ── 2. Fetch Data Sesuai Tab (Sangat efisien via DB Pagination) ──
+        // ── 2. Fetch data sesuai tab ───────────────────────────────────────────
         if ($type === 'announcement') {
             $query = Announcement::active()->with('creator');
-            
+
             if ($isRead !== null) {
                 if ($isRead) {
                     $query->whereIn('id', $readAnnouncementIds);
@@ -43,18 +50,20 @@ class InboxController extends Controller
             }
 
             if ($search) {
-                $query->where(function($q) use ($search) {
+                $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
                       ->orWhere('body', 'like', "%{$search}%");
                 });
             }
-            
-            $paged = $query->latest()->paginate($perPage);
-            $data = $paged->map(fn($a) => $this->formatAnnouncement($a, $userId));
 
-        } else { // type = report
-            $query = Report::with(['user', 'checklistItems']);
-            
+            $paged = $query->latest()->paginate($perPage);
+            $data  = $paged->map(fn($a) => $this->formatAnnouncement($a, $userId));
+
+        } else {
+            // type = personal: laporan yang name_pja = full_name user yang login
+            $query = Report::with(['user', 'checklistItems'])
+                ->where('name_pja', $user->full_name);
+
             if ($isRead !== null) {
                 if ($isRead) {
                     $query->whereIn('id', $readReportIds);
@@ -64,22 +73,22 @@ class InboxController extends Controller
             }
 
             if ($search) {
-                $query->where(function($q) use ($search) {
+                $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
                       ->orWhere('description', 'like', "%{$search}%")
                       ->orWhere('location', 'like', "%{$search}%");
                 });
             }
-            
+
             $paged = $query->latest()->paginate($perPage);
-            $data = $paged->map(fn($r) => $this->formatReport($r, $userId));
+            $data  = $paged->map(fn($r) => $this->formatReport($r, $userId));
         }
 
         return response()->json([
             'status'       => 'success',
             'unread_count' => [
-                'total'         => $unreadReportsCount + $unreadAnnouncementsCount,
-                'reports'       => $unreadReportsCount,
+                'total'         => $personalUnread + $unreadAnnouncementsCount,
+                'personal'      => $personalUnread,
                 'announcements' => $unreadAnnouncementsCount,
             ],
             'meta' => [
@@ -156,7 +165,7 @@ class InboxController extends Controller
             'is_read'     => $userId ? $report->isReadBy($userId) : false,
             'reported_by' => $report->user ? [
                 'full_name'  => $report->user->full_name,
-                'staff_id'   => $report->user->staff_id,
+                'employee_id'   => $report->user->employee_id,
                 'department' => $report->user->department,
                 'company'    => $report->user->company,
             ] : null,
@@ -185,14 +194,18 @@ class InboxController extends Controller
 
     private function formatAnnouncement(Announcement $a, ?string $userId): array
     {
+        $creatorName = $a->creator?->full_name ?? 'Admin';
+
         return [
             'id'        => $a->id,
             'item_type' => 'announcement',
             'title'     => $a->title,
             'body'      => $a->body,
-            'subtitle'  => $a->creator?->full_name ?? 'Admin',
+            'subtitle'  => $creatorName,
+            'from'      => $creatorName,   // untuk Announcement.fromJson di Flutter
+            'from_name' => $creatorName,   // alias
             'is_read'   => $userId ? $a->isReadBy($userId) : false,
-            'created_by'=> $a->creator ? [
+            'created_by' => $a->creator ? [
                 'full_name' => $a->creator->full_name,
                 'position'  => $a->creator->position,
             ] : null,

@@ -25,7 +25,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'staff_id'          => fake()->unique()->bothify('BBE-??-####'),
+            'employee_id'       => fake()->unique()->bothify('BBE-??-####'),
             'full_name'         => fake()->name(),
             'personal_email'    => fake()->unique()->safeEmail(),
             'work_email'        => fake()->unique()->companyEmail(),
