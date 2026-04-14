@@ -99,15 +99,18 @@ class AuthController extends Controller
     public function resendVerification(Request $request)
     {
         $request->validate([
-            'personal_email' => 'required|email',
+            'personal_email' => 'required|string',
         ]);
 
-        $user = User::where('personal_email', $request->personal_email)->first();
+        $user = User::where('personal_email', $request->personal_email)
+            ->orWhere('work_email', $request->personal_email)
+            ->orWhere('employee_id', $request->personal_email)
+            ->first();
 
         if (! $user) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Email tidak ditemukan.',
+                'message' => 'User tidak ditemukan.',
             ], 404);
         }
 
@@ -126,7 +129,7 @@ class AuthController extends Controller
 
         return response()->json([
             'status'  => 'success',
-            'message' => 'Link verifikasi baru telah dikirim ke email Anda.',
+            'message' => 'Link verifikasi baru telah dikirim ke email Anda: ' . $user->personal_email,
         ]);
     }
 
