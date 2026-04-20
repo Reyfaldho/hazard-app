@@ -36,6 +36,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── Auth ─────────────────────────────────────────────────────────────────
     Route::post('/logout', [AuthController::class, 'logout']);
 
+    // ── Admin User Management (CRUD) ──────────────────────────────────────────
+    Route::prefix('admin')->group(function () {
+        Route::get('/users',    [AuthController::class, 'adminIndex']);
+        Route::post('/users',   [AuthController::class, 'adminStore']);
+        Route::put('/users/{id}', [AuthController::class, 'adminUpdate']);
+        Route::delete('/users/{id}', [AuthController::class, 'adminDestroy']);
+    });
+
     // ── Profile ───────────────────────────────────────────────────────────────
     Route::get('/profile',                  [ProfileController::class, 'getProfile']);
     Route::post('/profile',                 [ProfileController::class, 'updateProfile']);
@@ -134,4 +142,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications/activity',           [NotificationController::class, 'registerFcmToken']); // legacy alias
 
     Route::get('/me', [AuthController::class, 'me']);
+
 });

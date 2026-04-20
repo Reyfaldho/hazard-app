@@ -99,10 +99,10 @@ class InboxController extends Controller
             }
 
             // Gabungkan hasil (ini manual gabung karena beda tabel)
-            $hazards = $hQuery->get()->map(function($r) use ($userId) {
+            $hazards = $hQuery->get()->map(function(HazardReport $r) use ($userId) {
                 return $this->formatHazard($r, $userId);
             });
-            $inspections = $iQuery->get()->map(function($r) use ($userId) {
+            $inspections = $iQuery->get()->map(function(InspectionReport $r) use ($userId) {
                 return $this->formatInspection($r, $userId);
             });
 
