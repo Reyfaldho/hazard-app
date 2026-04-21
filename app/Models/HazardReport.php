@@ -25,6 +25,7 @@ class HazardReport extends Model
         'image_url',
         'severity',
         'name_pja',
+        'company',
         'reported_department',
         'hazard_category',
         'hazard_subcategory',

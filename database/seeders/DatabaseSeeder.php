@@ -354,6 +354,7 @@ class DatabaseSeeder extends Seeder
             'hazard_category'     => 'KTA',
             'hazard_subcategory'  => 'Perlengkapan Keselamatan Rusak/Hilang',
             'suggestion'          => 'Segera bersihkan atau ganti rambu baru jika sudah buram agar mudah terlihat di malam hari.',
+            'company'             => 'PT. Bukit Baiduri Energi',
             'is_public'           => true,
         ]);
 
@@ -371,6 +372,7 @@ class DatabaseSeeder extends Seeder
             'hazard_category'     => 'TTA',
             'hazard_subcategory'  => 'Housekeeping Buruk',
             'suggestion'          => 'Pindahkan material ke area penyimpanan khusus. Jangan tinggalkan barang di jalur evakuasi.',
+            'company'             => 'PT. Khotai Makmur Insan Abadi',
             'is_public'           => false,
         ]);
 
@@ -388,6 +390,7 @@ class DatabaseSeeder extends Seeder
             'hazard_category'     => 'KTA',
             'hazard_subcategory'  => 'Instalasi Listrik Tidak Aman',
             'suggestion'          => 'Isolasi segera atau ganti kabel dan masukkan ke dalam pipa conduit.',
+            'company'             => 'PT. Bukit Baiduri Energi',
             'is_public'           => true,
         ]);
 
@@ -405,6 +408,7 @@ class DatabaseSeeder extends Seeder
             'hazard_category'     => 'KTA',
             'hazard_subcategory'  => 'Pencemaran/Tumpahan B3',
             'suggestion'          => 'Gunakan oil absorber dan panggil petugas maintenance untuk membersihkan lantai parkiran.',
+            'company'             => 'PT. Khotai Makmur Insan Abadi',
             'is_public'           => true,
         ]);
 
@@ -422,6 +426,7 @@ class DatabaseSeeder extends Seeder
             'hazard_category'     => 'TTA',
             'hazard_subcategory'  => 'Pelanggaran Prosedur K3/Lingkungan',
             'suggestion'          => 'Tegur pekerja yang bertanggung jawab dan edukasi ulang tentang SOP limbah B3.',
+            'company'             => 'PT. Bukit Baiduri Energi',
             'is_public'           => false,
         ]);
 
