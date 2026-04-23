@@ -21,6 +21,9 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Panggil seeder kategori dulu agar data tersedia untuk laporan
+        $this->call(HazardCategorySeeder::class);
+
         // ══════════════════════════════════════════════════════════════════
         // USERS
         // Kolom login: staff_id + password_hash
@@ -89,6 +92,7 @@ class DatabaseSeeder extends Seeder
             'password_hash'  => Hash::make('123'),
             'is_active'      => true,
             'role'           => 'user',
+            'tipe_afiliasi'  => 'owner',
             'email_verified_at' => now(),
         ]);
 
@@ -106,6 +110,7 @@ class DatabaseSeeder extends Seeder
             'role'           => 'user',
             'tipe_afiliasi'  => 'kontraktor',
             'perusahaan_kontraktor' => 'PT PAMA',
+            'simper'         => 'PAMA-OP-12345',
             'email_verified_at' => now(),
         ]);
 
@@ -428,7 +433,7 @@ class DatabaseSeeder extends Seeder
             'pic_department'      => 'Sari Dewi Rahayu, Environmental Dept',
             'reported_department' => 'Environmental',
             'hazard_category'     => 'TTA',
-            'hazard_subcategory'  => 'Pelanggaran Prosedur K3/Lingkungan',
+            'hazard_subcategory'  => 'Mengabaikan Prosedur Keselamatan',
             'suggestion'          => 'Tegur pekerja yang bertanggung jawab dan edukasi ulang tentang SOP limbah B3.',
             'pelaku_pelanggaran'  => 'Sub-con Painter Team',
         ]);

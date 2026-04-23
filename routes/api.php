@@ -12,6 +12,7 @@ use App\Http\Controllers\API\QrAssetController;
 use App\Http\Controllers\API\InboxController;
 use App\Http\Controllers\API\ForgotPasswordController;
 use App\Http\Controllers\API\NotificationController;
+use App\Http\Controllers\API\HazardCategoryController;
 
 // ── Public Routes ─────────────────────────────────────────────────────────────
 
@@ -60,6 +61,30 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/hazard-reports/{id}/logs',    [HazardReportController::class, 'logs']);
     Route::delete('/hazard-reports/{id}',      [HazardReportController::class, 'destroy']);
     Route::post('/hazard-reports/{id}/status', [HazardReportController::class, 'updateStatus'])
+        ->middleware('role:admin,superadmin');
+
+    // ── Hazard Categories ─────────────────────────────────────────────────────
+    Route::get('/hazard-categories', [HazardCategoryController::class, 'index']);
+    Route::post('/hazard-categories', [HazardCategoryController::class, 'store'])
+        ->middleware('role:admin,superadmin');
+    Route::put('/hazard-categories/{id}', [HazardCategoryController::class, 'update'])
+        ->middleware('role:admin,superadmin');
+    Route::delete('/hazard-categories/{id}', [HazardCategoryController::class, 'destroy'])
+        ->middleware('role:admin,superadmin');
+
+    // Subcategories
+    Route::get('/hazard-categories/subcategories/pending', [HazardCategoryController::class, 'getPendingSubcategories']);
+    Route::post('/hazard-categories/subcategories/{subId}/approve', [HazardCategoryController::class, 'approveSubcategory'])
+        ->middleware('role:admin,superadmin');
+    Route::post('/hazard-categories/subcategories/{subId}/reject', [HazardCategoryController::class, 'rejectSubcategory'])
+        ->middleware('role:admin,superadmin');
+    Route::post('/hazard-categories/subcategories/{subId}/toggle', [HazardCategoryController::class, 'toggleSubcategory'])
+        ->middleware('role:admin,superadmin');
+
+    Route::post('/hazard-categories/{categoryId}/subcategories', [HazardCategoryController::class, 'storeSubcategory']);
+    Route::put('/hazard-categories/{categoryId}/subcategories/{subId}', [HazardCategoryController::class, 'updateSubcategory'])
+        ->middleware('role:admin,superadmin');
+    Route::delete('/hazard-categories/{categoryId}/subcategories/{subId}', [HazardCategoryController::class, 'destroySubcategory'])
         ->middleware('role:admin,superadmin');
 
     // ── Inspection Reports ────────────────────────────────────────────────────
