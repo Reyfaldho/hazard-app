@@ -35,6 +35,7 @@ class HazardReport extends Model
         'hazard_subcategory',
         'suggestion',
         'is_public',
+        'due_date',
     ];
 
     public function user()
@@ -61,6 +62,18 @@ class HazardReport extends Model
         parent::boot();
 
         static::creating(function ($model) {
+            // 1. Calculate Due Date based on Severity
+            if (empty($model->due_date)) {
+                $days = match ($model->severity) {
+                    'high'   => 3,
+                    'medium' => 7,
+                    'low'    => 14,
+                    default  => 7,
+                };
+                $model->due_date = now()->addDays($days);
+            }
+
+            // 2. Generate Ticket Number
             if (empty($model->ticket_number)) {
                 DB::transaction(function () use ($model) {
                     // Gunakan company dari model, fallback ke company user, lalu 'UNK'
