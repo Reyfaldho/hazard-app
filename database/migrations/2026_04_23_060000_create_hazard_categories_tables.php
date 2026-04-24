@@ -25,8 +25,6 @@ return new class extends Migration
             $table->string('abbreviation')->nullable();
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('approved');
-            $table->foreignUuid('proposed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

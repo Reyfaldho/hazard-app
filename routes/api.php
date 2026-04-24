@@ -66,26 +66,22 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── Hazard Categories ─────────────────────────────────────────────────────
     Route::get('/hazard-categories', [HazardCategoryController::class, 'index']);
     Route::post('/hazard-categories', [HazardCategoryController::class, 'store'])
-        ->middleware('role:admin,superadmin');
+        ->middleware('role:superadmin');
     Route::put('/hazard-categories/{id}', [HazardCategoryController::class, 'update'])
-        ->middleware('role:admin,superadmin');
+        ->middleware('role:superadmin');
     Route::delete('/hazard-categories/{id}', [HazardCategoryController::class, 'destroy'])
-        ->middleware('role:admin,superadmin');
+        ->middleware('role:superadmin');
 
     // Subcategories
-    Route::get('/hazard-categories/subcategories/pending', [HazardCategoryController::class, 'getPendingSubcategories']);
-    Route::post('/hazard-categories/subcategories/{subId}/approve', [HazardCategoryController::class, 'approveSubcategory'])
-        ->middleware('role:admin,superadmin');
-    Route::post('/hazard-categories/subcategories/{subId}/reject', [HazardCategoryController::class, 'rejectSubcategory'])
-        ->middleware('role:admin,superadmin');
     Route::post('/hazard-categories/subcategories/{subId}/toggle', [HazardCategoryController::class, 'toggleSubcategory'])
-        ->middleware('role:admin,superadmin');
+        ->middleware('role:superadmin');
 
-    Route::post('/hazard-categories/{categoryId}/subcategories', [HazardCategoryController::class, 'storeSubcategory']);
+    Route::post('/hazard-categories/{categoryId}/subcategories', [HazardCategoryController::class, 'storeSubcategory'])
+        ->middleware('role:superadmin');
     Route::put('/hazard-categories/{categoryId}/subcategories/{subId}', [HazardCategoryController::class, 'updateSubcategory'])
-        ->middleware('role:admin,superadmin');
+        ->middleware('role:superadmin');
     Route::delete('/hazard-categories/{categoryId}/subcategories/{subId}', [HazardCategoryController::class, 'destroySubcategory'])
-        ->middleware('role:admin,superadmin');
+        ->middleware('role:superadmin');
 
     // ── Inspection Reports ────────────────────────────────────────────────────
     Route::get('/inspection-reports',              [InspectionReportController::class, 'index']);

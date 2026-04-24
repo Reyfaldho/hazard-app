@@ -18,9 +18,7 @@ class HazardCategoryController extends Controller
     public function index()
     {
         try {
-            $categories = HazardCategory::with(['subcategories' => function($query) {
-                $query->where('status', 'approved');
-            }])->get();
+            $categories = HazardCategory::with('subcategories')->get();
             return response()->json(['status' => 'success', 'data' => $categories]);
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
@@ -90,37 +88,8 @@ class HazardCategoryController extends Controller
 
     // ── Subcategories ─────────────────────────────────────────────────────────
 
-    /**
-     * GET /api/hazard-categories/subcategories/pending
-     * List subcategory proposals.
-     * - Admin: see all 'pending'
-     * - User: see their own proposals
-     */
-    public function getPendingSubcategories(Request $request)
-    {
-        try {
-            $user = $request->user();
-            $isAdmin = in_array($user->role, ['admin', 'superadmin']);
 
-            $query = HazardSubcategory::with(['category', 'proposedBy']);
 
-            if ($isAdmin) {
-                $query->where('status', 'pending');
-            } else {
-                $query->where('proposed_by', $user->id);
-            }
-
-            $data = $query->get();
-            return response()->json(['status' => 'success', 'data' => $data]);
-        } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
-        }
-    }
-
-    /**
-     * POST /api/hazard-categories/{categoryId}/subcategories
-     * Add a subcategory to a category.
-     */
     public function storeSubcategory(Request $request, $categoryId)
     {
         HazardCategory::findOrFail($categoryId);
@@ -131,26 +100,17 @@ class HazardCategoryController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $user = $request->user();
-        $status = in_array($user->role, ['admin', 'superadmin']) ? 'approved' : 'pending';
-
         try {
             $sub = HazardSubcategory::create([
                 'category_id' => $categoryId,
                 'name'        => $request->name,
                 'abbreviation'=> $request->abbreviation,
                 'description' => $request->description,
-                'status'      => $status,
-                'proposed_by' => $user->id,
             ]);
-
-            $message = ($status === 'approved') 
-                ? 'Subkategori berhasil dibuat.' 
-                : 'Usulan subkategori berhasil dikirim dan menunggu persetujuan admin.';
 
             return response()->json([
                 'status' => 'success', 
-                'message' => $message,
+                'message' => 'Subkategori berhasil dibuat.',
                 'data' => $sub
             ], 201);
         } catch (\Exception $e) {
@@ -158,35 +118,7 @@ class HazardCategoryController extends Controller
         }
     }
 
-    /**
-     * POST /api/hazard-categories/subcategories/{subId}/approve
-     * Approve a subcategory (Admin only).
-     */
-    public function approveSubcategory($subId)
-    {
-        try {
-            $sub = HazardSubcategory::findOrFail($subId);
-            $sub->update(['status' => 'approved']);
-            return response()->json(['status' => 'success', 'message' => 'Subkategori disetujui.', 'data' => $sub]);
-        } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
-        }
-    }
 
-    /**
-     * POST /api/hazard-categories/subcategories/{subId}/reject
-     * Reject a subcategory (Admin only).
-     */
-    public function rejectSubcategory($subId)
-    {
-        try {
-            $sub = HazardSubcategory::findOrFail($subId);
-            $sub->update(['status' => 'rejected']);
-            return response()->json(['status' => 'success', 'message' => 'Subkategori ditolak.']);
-        } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
-        }
-    }
 
     /**
      * PUT /api/hazard-categories/{categoryId}/subcategories/{subId}
