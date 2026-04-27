@@ -34,12 +34,14 @@ class InboxController extends Controller
         $personalHazardUnread = HazardReport::where(function($q) use ($user) {
                 $q->where('pic_department', 'like', '%' . $user->full_name . '%');
             })
+            ->where('status', '!=', 'pending')
             ->whereNotIn('id', $readHazardIds)
             ->count();
-
+            
         $personalInspectionUnread = InspectionReport::where(function($q) use ($user) {
                 $q->where('name_inspector', $user->full_name);
             })
+            ->where('status', '!=', 'pending')
             ->whereNotIn('id', $readInspectionIds)
             ->count();
 
@@ -74,9 +76,13 @@ class InboxController extends Controller
             $data  = $paged->getCollection()->map(fn($a) => $this->formatAnnouncement($a, $userId));
 
         } else {
-            // Gabungkan Hazard dan Inspection yang relevan
-            $hQuery = HazardReport::with(['user'])->where('pic_department', 'like', '%' . $user->full_name . '%');
-            $iQuery = InspectionReport::with(['user', 'checklistItems'])->where('name_inspector', $user->full_name);
+            // Gabungkan Hazard dan Inspection yang relevan, exclude pending (hanya tampil setelah approved)
+            $hQuery = HazardReport::with(['user'])
+                ->where('pic_department', 'like', '%' . $user->full_name . '%')
+                ->where('status', '!=', 'pending');
+            $iQuery = InspectionReport::with(['user', 'checklistItems'])
+                ->where('name_inspector', $user->full_name)
+                ->where('status', '!=', 'pending');
 
             if ($isRead !== null) {
                 if ($isRead) {
@@ -216,6 +222,9 @@ class InboxController extends Controller
             'time_ago'            => $report->created_at?->diffForHumans(),
             'severity'            => $report->severity,
             'pic_department'      => $report->pic_department,
+            'pelaku_pelanggaran'  => $report->pelaku_pelanggaran,
+            'company'             => $report->company,
+            'area'                => $report->area,
             'reported_department' => $report->reported_department,
             'hazard_category'     => $report->hazard_category,
             'hazard_subcategory'  => $report->hazard_subcategory,
@@ -238,6 +247,7 @@ class InboxController extends Controller
             'reported_by'     => $report->user ? $report->user->only(['full_name', 'employee_id', 'department', 'company']) : null,
             'created_at'      => $report->created_at?->toIso8601String(),
             'time_ago'        => $report->created_at?->diffForHumans(),
+            'company'         => $report->company,
             'area'            => $report->area,
             'name_inspector'  => $report->name_inspector,
             'result'          => $report->result,

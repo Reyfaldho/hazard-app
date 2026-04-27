@@ -24,7 +24,16 @@ class InspectionReportController extends Controller
     public function index(Request $request)
     {
         $query  = InspectionReport::with(['user', 'checklistItems'])->latest();
-        $userId = Auth::id();
+        $user   = Auth::user();
+        $userId = $user->id;
+
+        // Apply privacy filter: pending reports are visible only to the creator or admins
+        if (!in_array($user->role, ['admin', 'superadmin'])) {
+            $query->where(function ($q) use ($user) {
+                $q->where('status', '!=', 'pending')
+                ->orWhere('user_id', $user->id);
+            });
+        }
 
         if ($request->filled('status'))     $query->where('status', $request->status);
         if ($request->filled('area'))       $query->where('area', $request->area);
@@ -66,7 +75,7 @@ class InspectionReportController extends Controller
             'description'         => 'required|string',
             'location'            => 'required|string|max:200',
             'image'               => 'nullable|image|max:4096',
-            'company'             => 'nullable|string|max:3',
+            'company'             => 'nullable|string|max:150',
             'area'                => 'nullable|string|max:100',
             'inspector'           => 'nullable|string|max:150',
             'result'              => 'nullable|in:compliant,non_compliant,needs_follow_up',
@@ -84,7 +93,8 @@ class InspectionReportController extends Controller
             'user_id'             => Auth::id(),
             'title'               => $request->title,
             'description'         => $request->description,
-            'status'              => 'open',
+            'status'              => 'pending',
+            'sub_status'          => 'validating',
             'location'            => $request->location,
             'image_url'           => $imageUrl,
             'company'             => $request->company ? strtoupper(trim($request->company)) : null,
@@ -116,9 +126,10 @@ class InspectionReportController extends Controller
         }
 
         $report->logs()->create([
-            'user_id' => Auth::id(),
-            'status'  => 'open',
-            'message' => 'Laporan inspeksi baru dibuat.',
+            'user_id'    => Auth::id(),
+            'status'     => 'pending',
+            'sub_status' => 'validating',
+            'message'    => 'Laporan inspeksi baru dibuat dan sedang dalam proses validasi admin.',
         ]);
 
         $report->load(['user', 'checklistItems']);
@@ -177,7 +188,7 @@ class InspectionReportController extends Controller
     public function updateStatus(Request $request, string $id)
     {
         $request->validate([
-            'status'         => 'required|in:open,in_progress,closed',
+            'status'         => 'required|in:open,in_progress,closed,rejected',
             'sub_status'     => 'nullable|string|max:50',
             'message'        => 'nullable|string',
             'image'          => 'nullable|image|max:8192',
@@ -185,6 +196,35 @@ class InspectionReportController extends Controller
         ]);
 
         $report = InspectionReport::findOrFail($id);
+        $user = Auth::user();
+
+        // Check if user is Admin, Superadmin, the original Reporter, or the Inspector
+        $isInspector = $report->name_inspector && stripos($report->name_inspector, $user->full_name) !== false;
+        $isAdmin = in_array($user->role, ['admin', 'superadmin']);
+        $isReporter = $report->user_id === $user->id;
+
+        if (!$isAdmin && !$isReporter && !$isInspector) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak. Anda tidak memiliki izin.'], 403);
+        }
+
+        $requestedStatus = $request->status;
+        $normalizedStatus = $requestedStatus === 'rejected' ? 'closed' : $requestedStatus;
+        $normalizedSubStatus = $request->sub_status;
+        if ($requestedStatus === 'rejected' && !$normalizedSubStatus) {
+            $normalizedSubStatus = 'rejected';
+        }
+
+        // Additional restrictions for non-admins
+        if (!$isAdmin) {
+            // Cannot select 'validating' or 'approved'
+            if (in_array($normalizedSubStatus, ['validating', 'approved'])) {
+                return response()->json(['status' => 'error', 'message' => 'Izin ditolak untuk status ini.'], 403);
+            }
+            // Cannot select final closed status (including explicit rejected request)
+            if (in_array($requestedStatus, ['closed', 'rejected'])) {
+                return response()->json(['status' => 'error', 'message' => 'Hanya Admin yang dapat menutup laporan.'], 403);
+            }
+        }
 
         $imageUrl = null;
         if ($request->hasFile('image')) {
@@ -193,15 +233,15 @@ class InspectionReportController extends Controller
         }
 
         $report->update([
-            'status'     => $request->status,
-            'sub_status' => $request->sub_status,
+            'status'     => $normalizedStatus,
+            'sub_status' => $normalizedSubStatus,
         ]);
 
         $report->logs()->create([
             'user_id'        => Auth::id(),
             'tagged_user_id' => $request->tagged_user_id,
-            'status'         => $request->status,
-            'sub_status'     => $request->sub_status,
+            'status'         => $normalizedStatus,
+            'sub_status'     => $normalizedSubStatus,
             'message'        => $request->message ?? "Status diubah",
             'image_url'      => $imageUrl,
         ]);
@@ -247,9 +287,10 @@ class InspectionReportController extends Controller
             'location'        => $report->location,
             'image_url'       => $report->image_url,
             'is_read'         => $userId ? $report->isReadBy($userId) : false,
-            'reported_by'     => $report->user ? $report->user->only(['full_name', 'employee_id', 'department', 'company']) : null,
+            'reported_by'     => $report->user ? $report->user->only(['id', 'full_name', 'employee_id', 'department', 'company']) : null,
             'created_at'      => $report->created_at,
             'time_ago'        => $report->created_at?->diffForHumans(),
+            'company'         => $report->company,
             'area'            => $report->area,
             'name_inspector'  => $report->name_inspector,
             'result'          => $report->result,

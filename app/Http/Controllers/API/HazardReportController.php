@@ -29,9 +29,15 @@ class HazardReportController extends Controller
         // Apply privacy filter: private reports are visible only to the creator, the targeted PJA, or admins
         if (!in_array($user->role, ['admin', 'superadmin'])) {
             $query->where(function ($q) use ($user) {
-                $q->where('is_public', true)
-                  ->orWhere('user_id', $user->id)
-                  ->orWhere('pic_department', 'like', '%' . $user->full_name . '%');
+                $q->where(function ($sq) {
+                    $sq->where('is_public', true)
+                       ->where('status', '!=', 'pending');
+                })
+                ->orWhere('user_id', $user->id) // Creator can see their own reports (including pending)
+                ->orWhere(function ($sq) use ($user) {
+                    $sq->where('pic_department', 'like', '%' . $user->full_name . '%')
+                       ->where('status', '!=', 'pending');
+                });
             });
         }
 
@@ -79,7 +85,7 @@ class HazardReportController extends Controller
             'location'            => 'required|string|max:200',
             'image'               => 'nullable|image|max:4096',
             'severity'            => 'required|in:low,medium,high',
-            'pic_department'      => 'nullable|string',
+            'pic_department'      => 'nullable|string|max:100',
             'company'             => 'nullable|string|max:150',
             'area'                => 'nullable|string|max:200',
             'reported_department' => 'nullable|string|max:100',
@@ -102,7 +108,8 @@ class HazardReportController extends Controller
             'user_id'             => Auth::id(),
             'title'               => $request->title,
             'description'         => $request->description,
-            'status'              => 'open',
+            'status'              => 'pending',
+            'sub_status'          => 'validating',
             'location'            => $request->location,
             'pelapor_location'    => $request->pelapor_location,
             'kejadian_location'   => $request->kejadian_location,
@@ -116,13 +123,14 @@ class HazardReportController extends Controller
             'hazard_category'     => $request->hazard_category,
             'hazard_subcategory'  => $request->hazard_subcategory,
             'suggestion'          => $request->suggestion,
-            'is_public'           => filter_var($request->input('isPublic', true), FILTER_VALIDATE_BOOLEAN),
+            'is_public'           => filter_var($request->input('isPublic', true), FILTER_VALIDATE_BOOLEAN),            
         ]);
 
         $report->logs()->create([
-            'user_id' => Auth::id(),
-            'status'  => 'open',
-            'message' => 'Laporan hazard baru dibuat.',
+            'user_id'    => Auth::id(),
+            'status'     => 'pending',
+            'sub_status' => 'validating',
+            'message'    => 'Laporan hazard baru dibuat dan sedang dalam proses validasi admin.',
         ]);
 
         $report->load('user');
@@ -179,18 +187,49 @@ class HazardReportController extends Controller
     public function updateStatus(Request $request, string $id)
     {
         $request->validate([
-            'status'         => 'required|in:open,in_progress,closed',
-            'sub_status'     => 'nullable|string|max:50',
-            'message'        => 'nullable|string',
-            'image'          => 'nullable|image|max:8192',
-            'tagged_user_id' => 'nullable|uuid|exists:users,id',
+            'status'              => 'required|in:pending,open,in_progress,closed,rejected',
+            'sub_status'          => 'nullable|string|max:50',
+            'message'             => 'nullable|string',
+            'image'               => 'nullable|image|max:8192',
+            'tagged_user_id'      => 'nullable|uuid|exists:users,id',
+            'pic_department'      => 'nullable|string|max:100',
+            'reported_department' => 'nullable|string|max:100',
         ]);
 
-        if (in_array($request->sub_status, ['executing', 'reviewing']) && !$request->hasFile('image')) {
-            return response()->json(['status' => 'error', 'message' => 'Lampiran wajib.'], 422);
+        $report = HazardReport::findOrFail($id);
+        $user = Auth::user();
+
+        // Check if user is Admin, Superadmin, the original Reporter, or tagged PJA
+        $isPja = $report->pic_department && stripos($report->pic_department, $user->full_name) !== false;
+        $isAdmin = in_array($user->role, ['admin', 'superadmin']);
+        $isReporter = $report->user_id === $user->id;
+
+        if (!$isAdmin && !$isReporter && !$isPja) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak. Anda tidak memiliki izin.'], 403);
         }
 
-        $report = HazardReport::findOrFail($id);
+        $requestedStatus = $request->status;
+        $normalizedStatus = $requestedStatus === 'rejected' ? 'closed' : $requestedStatus;
+        $normalizedSubStatus = $request->sub_status;
+        if ($requestedStatus === 'rejected' && !$normalizedSubStatus) {
+            $normalizedSubStatus = 'rejected';
+        }
+
+        // Additional restrictions for non-admins
+        if (!$isAdmin) {
+            // Cannot select 'validating' or 'approved'
+            if (in_array($normalizedSubStatus, ['validating', 'approved'])) {
+                return response()->json(['status' => 'error', 'message' => 'Izin ditolak untuk status ini.'], 403);
+            }
+            // Cannot select final closed status (including explicit rejected request)
+            if (in_array($requestedStatus, ['closed', 'rejected'])) {
+                return response()->json(['status' => 'error', 'message' => 'Hanya Admin yang dapat menutup laporan.'], 403);
+            }
+        }
+
+        if ($normalizedSubStatus === 'reviewing' && !$request->hasFile('image')) {
+            return response()->json(['status' => 'error', 'message' => 'Lampiran wajib.'], 422);
+        }
 
         $imageUrl = null;
         if ($request->hasFile('image')) {
@@ -198,16 +237,21 @@ class HazardReportController extends Controller
             $imageUrl = asset('storage/' . $path);
         }
 
-        $report->update([
-            'status'     => $request->status,
-            'sub_status' => $request->sub_status,
-        ]);
+        $updateData = [
+            'status'     => $normalizedStatus,
+            'sub_status' => $normalizedSubStatus,
+        ];
+
+        if ($request->has('pic_department'))      $updateData['pic_department'] = $request->pic_department;
+        if ($request->has('reported_department')) $updateData['reported_department'] = $request->reported_department;
+
+        $report->update($updateData);
 
         $report->logs()->create([
             'user_id'        => Auth::id(),
             'tagged_user_id' => $request->tagged_user_id,
-            'status'         => $request->status,
-            'sub_status'     => $request->sub_status,
+            'status'         => $normalizedStatus,
+            'sub_status'     => $normalizedSubStatus,
             'message'        => $request->message ?? "Status diubah",
             'image_url'      => $imageUrl,
         ]);
@@ -254,7 +298,7 @@ class HazardReportController extends Controller
             'kejadian_location'   => $report->kejadian_location,
             'image_url'           => $report->image_url,
             'is_read'             => $userId ? $report->isReadBy($userId) : false,
-            'reported_by'         => $report->user ? $report->user->only(['full_name', 'employee_id', 'department', 'company']) : null,
+            'reported_by'         => $report->user ? $report->user->only(['id', 'full_name', 'employee_id', 'department', 'company']) : null,
             'created_at'          => $report->created_at,
             'time_ago'            => $report->created_at?->diffForHumans(),
             'severity'            => $report->severity,
