@@ -97,4 +97,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserMedical::class, 'user_id');
     }
+
+    public function violations()
+    {
+        return $this->hasMany(UserViolation::class, 'user_id');
+    }
 }

@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Models\UserCertification;
 use App\Models\UserLicense;
 use App\Models\UserMedical;
+use App\Models\UserViolation;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -171,6 +172,7 @@ class DatabaseSeeder extends Seeder
             'license_number' => 'SIM-B2-2021-001234',
             'expired_at'     => now()->addYears(2)->toDateString(),
             'status'         => 'active',
+            'is_verified'    => true,
         ]);
         UserLicense::create([
             'user_id'        => $faiz->id,
@@ -178,6 +180,7 @@ class DatabaseSeeder extends Seeder
             'license_number' => 'LOP-EXC-2022-00456',
             'expired_at'     => now()->addYear()->toDateString(),
             'status'         => 'active',
+            'is_verified'    => false,
         ]);
         UserLicense::create([
             'user_id'        => $lintang->id,
@@ -185,6 +188,7 @@ class DatabaseSeeder extends Seeder
             'license_number' => 'AK3U-2020-007811',
             'expired_at'     => now()->subMonths(4)->toDateString(),
             'status'         => 'expired',
+            'is_verified'    => true,
         ]);
         UserLicense::create([
             'user_id'        => $lintang->id,
@@ -192,6 +196,7 @@ class DatabaseSeeder extends Seeder
             'license_number' => 'LAS-SMAW-2023-00099',
             'expired_at'     => now()->addYears(3)->toDateString(),
             'status'         => 'active',
+            'is_verified'    => true,
         ]);
         UserLicense::create([
             'user_id'        => $rudi->id,
@@ -199,6 +204,7 @@ class DatabaseSeeder extends Seeder
             'license_number' => 'INST-MAD-2021-00532',
             'expired_at'     => now()->addYear()->toDateString(),
             'status'         => 'active',
+            'is_verified'    => true,
         ]);
         UserLicense::create([
             'user_id'        => $admin->id,
@@ -206,6 +212,7 @@ class DatabaseSeeder extends Seeder
             'license_number' => 'AK3-MADYA-2020-00188',
             'expired_at'     => now()->addMonths(8)->toDateString(),
             'status'         => 'active',
+            'is_verified'    => true,
         ]);
         UserLicense::create([
             'user_id'        => $putri->id,
@@ -213,6 +220,7 @@ class DatabaseSeeder extends Seeder
             'license_number' => 'AMDAL-D-2022-00341',
             'expired_at'     => now()->addYears(4)->toDateString(),
             'status'         => 'active',
+            'is_verified'    => true,
         ]);
 
         // ══════════════════════════════════════════════════════════════════
@@ -225,6 +233,7 @@ class DatabaseSeeder extends Seeder
             'issuer'  => 'Kemnaker RI',
             'year'    => 2021,
             'status'  => 'active',
+            'is_verified' => true,
         ]);
         UserCertification::create([
             'user_id' => $faiz->id,
@@ -232,6 +241,7 @@ class DatabaseSeeder extends Seeder
             'issuer'  => 'BNSP',
             'year'    => 2022,
             'status'  => 'active',
+            'is_verified' => true,
         ]);
         UserCertification::create([
             'user_id' => $lintang->id,
@@ -239,6 +249,7 @@ class DatabaseSeeder extends Seeder
             'issuer'  => 'BNSP',
             'year'    => 2023,
             'status'  => 'active',
+            'is_verified' => false,
         ]);
         UserCertification::create([
             'user_id' => $rudi->id,
@@ -246,6 +257,7 @@ class DatabaseSeeder extends Seeder
             'issuer'  => 'PLN Pusdiklat',
             'year'    => 2021,
             'status'  => 'active',
+            'is_verified' => true,
         ]);
         UserCertification::create([
             'user_id' => $rudi->id,
@@ -253,6 +265,7 @@ class DatabaseSeeder extends Seeder
             'issuer'  => 'Kemnaker RI',
             'year'    => 2019,
             'status'  => 'expired',
+            'is_verified' => true,
         ]);
         UserCertification::create([
             'user_id' => $admin->id,
@@ -260,6 +273,7 @@ class DatabaseSeeder extends Seeder
             'issuer'  => 'SGS Indonesia',
             'year'    => 2022,
             'status'  => 'active',
+            'is_verified' => true,
         ]);
         UserCertification::create([
             'user_id' => $admin2->id,
@@ -267,6 +281,7 @@ class DatabaseSeeder extends Seeder
             'issuer'  => 'IOSH',
             'year'    => 2023,
             'status'  => 'active',
+            'is_verified' => true,
         ]);
         UserCertification::create([
             'user_id' => $putri->id,
@@ -274,6 +289,7 @@ class DatabaseSeeder extends Seeder
             'issuer'  => 'KLHK',
             'year'    => 2022,
             'status'  => 'active',
+            'is_verified' => true,
         ]);
 
         // ══════════════════════════════════════════════════════════════════
@@ -345,6 +361,27 @@ class DatabaseSeeder extends Seeder
             'allergies'         => 'Polutan kimia',
             'result'            => 'Fit to Work',
             'next_checkup_date' => now()->addMonths(10)->toDateString(),
+        ]);
+
+        // ══════════════════════════════════════════════════════════════════
+        // USER VIOLATIONS
+        // ══════════════════════════════════════════════════════════════════
+
+        UserViolation::create([
+            'user_id'           => $faiz->id,
+            'title'             => 'Kecepatan Berlebih — DT-007',
+            'location'          => 'Hauling Road KM 5',
+            'date_of_violation' => now()->subDays(10)->toDateString(),
+            'status'            => 'Aktif',
+            'sanction'          => 'SIMPER tersuspend s/d ' . now()->addDays(20)->format('d M Y') . ' (30 hari)',
+        ]);
+        UserViolation::create([
+            'user_id'           => $lintang->id,
+            'title'             => 'Tidak Menggunakan Safety Glasses',
+            'location'          => 'Workshop Area',
+            'date_of_violation' => now()->subMonths(2)->toDateString(),
+            'status'            => 'Selesai',
+            'sanction'          => 'Teguran Lisan & Pencatatan',
         ]);
 
         // ══════════════════════════════════════════════════════════════════

@@ -24,6 +24,11 @@ return new class extends Migration {
             $table->string('company', 150)->nullable();
             $table->string('area', 200)->nullable();
             $table->string('reported_department', 100)->nullable();
+            $table->string('pic_department', 100)->nullable();
+            $table->string('pelaku_pelanggaran', 150)->nullable();
+            $table->string('pelapor_location', 100)->nullable();
+            $table->string('kejadian_location', 100)->nullable();
+            $table->date('due_date')->nullable();
             $table->string('hazard_category', 50)->nullable(); // e.g. TTA / KTA
             $table->string('hazard_subcategory', 150)->nullable();
             $table->text('suggestion')->nullable();

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('license_number', 50);
             $table->date('expired_at');
             $table->enum('status', ['active', 'expired', 'suspended'])->default('active');
+            $table->boolean('is_verified')->default(false);
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();

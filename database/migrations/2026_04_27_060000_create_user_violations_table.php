@@ -8,14 +8,14 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('user_certifications', function (Blueprint $table) {
+        Schema::create('user_violations', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('user_id');
-            $table->string('name', 100);
-            $table->string('issuer', 100);
-            $table->integer('year');
-            $table->enum('status', ['active', 'expired'])->default('active');
-            $table->boolean('is_verified')->default(false);
+            $table->string('title', 150);
+            $table->string('location', 150)->nullable();
+            $table->date('date_of_violation');
+            $table->string('status', 50)->default('Aktif'); // Aktif, Selesai, etc.
+            $table->string('sanction', 200)->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
@@ -24,6 +24,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('user_certifications');
+        Schema::dropIfExists('user_violations');
     }
 };
